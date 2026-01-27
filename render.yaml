@@ -1,0 +1,62 @@
+services:
+  # Backend API
+  - type: web
+    name: forall-backend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run migrate || true
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: forall-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: forall-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: forall-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: forall-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: forall-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: forall-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: forall-redis
+          type: redis
+          property: port
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://forall-backend.onrender.com
+      - key: LOG_LEVEL
+        value: info
+
+databases:
+  # PostgreSQL Database
+  - name: forall-db
+    plan: free
+    databaseName: forall
+    user: forall_user
+
+  # Redis Cache
+  - name: forall-redis
+    plan: free
+    type: redis
