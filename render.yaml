@@ -33,11 +33,10 @@ services:
         fromDatabase:
           name: forall-db
           property: password
-      - key: REDIS_URL
-        fromService:
-          name: forall-redis
-          type: keyvalue
-          property: connectionString
+      - key: REDIS_HOST
+        value: localhost
+      - key: REDIS_PORT
+        value: "6379"
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN
@@ -45,13 +44,14 @@ services:
       - key: LOG_LEVEL
         value: info
 
-  # Redis Cache (Key Value)
-  - type: keyvalue
-    name: forall-redis
-    plan: free
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: Allow all connections
+  # Redis Cache (Key Value) - временно отключен для упрощения деплоя
+  # Можно добавить позже через Dashboard
+  # - type: keyvalue
+  #   name: forall-redis
+  #   plan: starter
+  #   ipAllowList:
+  #     - source: 0.0.0.0/0
+  #       description: Allow all connections
 
 databases:
   # PostgreSQL Database
