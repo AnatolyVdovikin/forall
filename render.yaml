@@ -4,7 +4,8 @@ services:
     name: forall-backend
     runtime: node
     plan: free
-    buildCommand: npm install && npm run migrate || true
+    buildCommand: npm install
+    preDeployCommand: npm run migrate || true
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -32,16 +33,11 @@ services:
         fromDatabase:
           name: forall-db
           property: password
-      - key: REDIS_HOST
+      - key: REDIS_URL
         fromService:
           name: forall-redis
           type: keyvalue
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          name: forall-redis
-          type: keyvalue
-          property: port
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN

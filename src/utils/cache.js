@@ -6,12 +6,24 @@ let redisClient = null;
 // Инициализация Redis клиента
 export async function initRedis() {
   try {
-    redisClient = createClient({
-      socket: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: process.env.REDIS_PORT || 6379,
-      },
-    });
+    // Поддержка REDIS_URL (connectionString) или отдельных REDIS_HOST/REDIS_PORT
+    let redisConfig;
+    
+    if (process.env.REDIS_URL) {
+      // Используем connectionString из Render или другого провайдера
+      redisClient = createClient({
+        url: process.env.REDIS_URL,
+      });
+    } else {
+      // Fallback на отдельные host/port для локальной разработки
+      redisConfig = {
+        socket: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        },
+      };
+      redisClient = createClient(redisConfig);
+    }
 
     redisClient.on('error', (err) => {
       logger.error('Redis Client Error', { error: err.message });
