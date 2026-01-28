@@ -2,7 +2,7 @@ services:
   # Backend API
   - type: web
     name: forall-backend
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install && npm run migrate || true
     startCommand: npm start
@@ -35,12 +35,12 @@ services:
       - key: REDIS_HOST
         fromService:
           name: forall-redis
-          type: redis
+          type: keyvalue
           property: host
       - key: REDIS_PORT
         fromService:
           name: forall-redis
-          type: redis
+          type: keyvalue
           property: port
       - key: JWT_SECRET
         generateValue: true
@@ -49,14 +49,17 @@ services:
       - key: LOG_LEVEL
         value: info
 
+  # Redis Cache (Key Value)
+  - type: keyvalue
+    name: forall-redis
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all connections
+
 databases:
   # PostgreSQL Database
   - name: forall-db
     plan: free
     databaseName: forall
     user: forall_user
-
-  # Redis Cache
-  - name: forall-redis
-    plan: free
-    type: redis
