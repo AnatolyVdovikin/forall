@@ -164,20 +164,27 @@ app.use((req, res) => {
 
 // Инициализация сервисов
 async function initialize() {
-  // Инициализируем Redis
-  await initRedis();
+  try {
+    // Инициализируем Redis (не блокируем запуск сервера при ошибке)
+    initRedis().catch((error) => {
+      logger.warn('Redis недоступен, продолжаем без кэширования', { error: error.message });
+    });
 
-  // Запускаем job обработки проектов
-  if (NODE_ENV === 'production') {
-    startProjectProcessorJob();
+    // Запускаем job обработки проектов
+    if (NODE_ENV === 'production') {
+      startProjectProcessorJob();
+    }
+
+    // Запускаем сервер
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      logger.info(`🚀 ForAll сервер запущен на порту ${PORT}`);
+      logger.info(`📱 Режим: ${NODE_ENV}`);
+      logger.info(`🌍 CORS origin: ${process.env.CORS_ORIGIN || '*'}`);
+    });
+  } catch (error) {
+    logger.error('Ошибка инициализации', { error: error.message, stack: error.stack });
+    throw error;
   }
-
-  // Запускаем сервер
-  httpServer.listen(PORT, () => {
-    logger.info(`🚀 ForAll сервер запущен на порту ${PORT}`);
-    logger.info(`📱 Режим: ${NODE_ENV}`);
-    logger.info(`🌍 CORS origin: ${process.env.CORS_ORIGIN || '*'}`);
-  });
 }
 
 // Обработка ошибок при запуске

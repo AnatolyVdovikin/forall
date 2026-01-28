@@ -5,6 +5,13 @@ let redisClient = null;
 
 // Инициализация Redis клиента
 export async function initRedis() {
+  // Если Redis не настроен (localhost в production), пропускаем инициализацию
+  if (process.env.REDIS_HOST === 'localhost' && process.env.NODE_ENV === 'production') {
+    logger.info('Redis не настроен (localhost), кэширование отключено');
+    redisClient = null;
+    return;
+  }
+
   try {
     // Поддержка REDIS_URL (connectionString) или отдельных REDIS_HOST/REDIS_PORT
     let redisConfig;
@@ -15,11 +22,21 @@ export async function initRedis() {
         url: process.env.REDIS_URL,
       });
     } else {
+      const redisHost = process.env.REDIS_HOST || 'localhost';
+      const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
+      
+      // Не пытаемся подключиться к localhost в production
+      if (redisHost === 'localhost' && process.env.NODE_ENV === 'production') {
+        logger.info('Redis не настроен (localhost), кэширование отключено');
+        redisClient = null;
+        return;
+      }
+      
       // Fallback на отдельные host/port для локальной разработки
       redisConfig = {
         socket: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          host: redisHost,
+          port: redisPort,
         },
       };
       redisClient = createClient(redisConfig);
