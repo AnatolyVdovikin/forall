@@ -186,6 +186,11 @@ async function initialize() {
       logger.info(`📱 Режим: ${NODE_ENV}`);
       logger.info(`🌍 CORS origin: ${process.env.CORS_ORIGIN || '*'}`);
       console.log(`✅ Сервер успешно запущен на порту ${PORT}`);
+      console.log(`🌐 Сервер слушает на 0.0.0.0:${PORT}`);
+      
+      // Проверка что сервер действительно слушает
+      const address = httpServer.address();
+      console.log(`📍 Адрес сервера:`, address);
     });
 
     // Обработка ошибок при запуске сервера
@@ -193,6 +198,11 @@ async function initialize() {
       logger.error('Ошибка HTTP сервера', { error: error.message, stack: error.stack });
       console.error('❌ Ошибка HTTP сервера:', error);
       throw error;
+    });
+
+    // Убеждаемся что процесс не завершается
+    httpServer.on('listening', () => {
+      console.log(`✅ HTTP сервер слушает на порту ${PORT}`);
     });
 
     console.log('✅ Инициализация завершена успешно');
@@ -232,14 +242,19 @@ process.on('SIGINT', () => {
 });
 
 // Запускаем инициализацию
-initialize().catch((error) => {
-  logger.error('Ошибка инициализации сервера', { error: error.message, stack: error.stack });
-  console.error('❌ Критическая ошибка инициализации:', error);
-  console.error('Stack:', error.stack);
-  // Даем время для логирования перед выходом
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-});
+initialize()
+  .then(() => {
+    console.log('✅ Сервер инициализирован и запущен');
+    // Процесс должен продолжать работать
+  })
+  .catch((error) => {
+    logger.error('Ошибка инициализации сервера', { error: error.message, stack: error.stack });
+    console.error('❌ Критическая ошибка инициализации:', error);
+    console.error('Stack:', error.stack);
+    // Даем время для логирования перед выходом
+    setTimeout(() => {
+      process.exit(1);
+    }, 1000);
+  });
 
 export { io };
