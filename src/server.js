@@ -165,9 +165,14 @@ app.use((req, res) => {
 // Инициализация сервисов
 async function initialize() {
   try {
+    console.log('🔄 Начало инициализации сервера...');
+    console.log(`📋 Переменные окружения: PORT=${PORT}, NODE_ENV=${NODE_ENV}`);
+    console.log(`📋 DB_HOST=${process.env.DB_HOST || 'не установлен'}`);
+    
     // Инициализируем Redis (не блокируем запуск сервера при ошибке)
     initRedis().catch((error) => {
       logger.warn('Redis недоступен, продолжаем без кэширования', { error: error.message });
+      console.log('⚠️ Redis недоступен, продолжаем без кэширования');
     });
 
     // Запускаем job обработки проектов
@@ -180,9 +185,21 @@ async function initialize() {
       logger.info(`🚀 ForAll сервер запущен на порту ${PORT}`);
       logger.info(`📱 Режим: ${NODE_ENV}`);
       logger.info(`🌍 CORS origin: ${process.env.CORS_ORIGIN || '*'}`);
+      console.log(`✅ Сервер успешно запущен на порту ${PORT}`);
     });
+
+    // Обработка ошибок при запуске сервера
+    httpServer.on('error', (error) => {
+      logger.error('Ошибка HTTP сервера', { error: error.message, stack: error.stack });
+      console.error('❌ Ошибка HTTP сервера:', error);
+      throw error;
+    });
+
+    console.log('✅ Инициализация завершена успешно');
   } catch (error) {
     logger.error('Ошибка инициализации', { error: error.message, stack: error.stack });
+    console.error('❌ Ошибка инициализации:', error);
+    console.error('Stack:', error.stack);
     throw error;
   }
 }
@@ -217,7 +234,12 @@ process.on('SIGINT', () => {
 // Запускаем инициализацию
 initialize().catch((error) => {
   logger.error('Ошибка инициализации сервера', { error: error.message, stack: error.stack });
-  process.exit(1);
+  console.error('❌ Критическая ошибка инициализации:', error);
+  console.error('Stack:', error.stack);
+  // Даем время для логирования перед выходом
+  setTimeout(() => {
+    process.exit(1);
+  }, 1000);
 });
 
 export { io };
