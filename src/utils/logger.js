@@ -6,10 +6,15 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Создаем директорию для логов
+// Создаем директорию для логов (безопасно)
 const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+try {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+} catch (error) {
+  // Игнорируем ошибки создания директории (например, в production на Render)
+  console.warn('Не удалось создать директорию для логов:', error.message);
 }
 
 const logger = winston.createLogger({
